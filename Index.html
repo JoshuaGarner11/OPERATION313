@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>OPERATION 3:13 // CLASSIFIED RECRUITMENT</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --accent: #ff1f3d;
+      --accent-glow: rgba(255,31,61,0.35);
+      --text-main: #f5f5f5;
+      --text-muted: #aaaaaa;
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; }
+
+    body {
+      min-height: 100dvh;
+      background: radial-gradient(circle at 30% 30%, #1a0003 0%, #000 75%);
+      color: var(--text-main);
+      font-family: 'Rajdhani', system-ui, sans-serif;
+      overflow: hidden;
+    }
+
+    canvas#particles { position:fixed; inset:0; z-index:1; pointer-events:none; }
+
+    .scan-lines {
+      position:fixed; inset:0; pointer-events:none; z-index:2; opacity:0.4;
+      background: repeating-linear-gradient(0deg, rgba(255,255,255,0.05) 0px, transparent 2px, transparent 6px);
+    }
+
+    .grain {
+      position:fixed; inset:0; pointer-events:none; z-index:2; opacity:0.4;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.3' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.38'/%3E%3C/svg%3E");
+    }
+
+    .sigils span {
+      position:absolute;
+      font-family:'Orbitron';
+      opacity:0.2;
+      color:var(--accent);
+      text-shadow:0 0 35px var(--accent);
+      animation:drift 22s infinite linear;
+      user-select:none;
+      z-index:3;
+    }
+
+    @keyframes drift {
+      from { transform:translate(0,0) rotate(0deg); }
+      to   { transform:translate(25px,-35px) rotate(5deg); }
+    }
+
+    .screen {
+      position:fixed; inset:0;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:1rem;
+      z-index:10;
+    }
+    .screen.active { display:flex; }
+
+    .card {
+      width:min(800px,96%);
+      max-height:95dvh;
+      overflow-y:auto;
+      padding:3rem 2.5rem;
+      border-radius:2rem;
+      background:rgba(10,0,15,0.92);
+      border:1px solid rgba(255,31,61,0.4);
+      box-shadow:0 0 80px rgba(255,31,61,0.5);
+      backdrop-filter:blur(12px);
+      animation:pop 0.6s cubic-bezier(0.175,0.885,0.32,1.275);
+    }
+
+    @keyframes pop {
+      from { transform:scale(0.9); opacity:0; }
+      to   { transform:scale(1);   opacity:1; }
+    }
+
+    .tagline {
+      text-transform:uppercase;
+      letter-spacing:0.18em;
+      font-size:0.8rem;
+      color:rgba(255,31,61,0.7);
+      margin-bottom:1rem;
+      text-align:center;
+      cursor:default;
+    }
+
+    /* GLITCH TITLE */
+    .glitch {
+      font-family:'Orbitron';
+      font-size:clamp(2.8rem,8vw,4.5rem);
+      letter-spacing:0.15em;
+      position:relative;
+      display:inline-block;
+    }
+
+    .glitch::before,
+    .glitch::after {
+      content:attr(data-text);
+      position:absolute;
+      inset:0;
+      opacity:0.7;
+    }
+
+    .glitch::before {
+      color:#ff3366;
+      transform:translate(-2px,-2px);
+      animation:g1 0.5s infinite;
+    }
+
+    .glitch::after {
+      color:#10ffb4;
+      transform:translate(2px,2px);
+      animation:g2 0.6s infinite;
+    }
+
+    @keyframes g1 {
+      0%,100%{clip-path:polygon(0 0,100% 0,100% 48%,0 48%)}
+      20%{clip-path:polygon(0 0,100% 0,100% 20%,0 20%)}
+    }
+    @keyframes g2 {
+      0%,100%{clip-path:polygon(0 70%,100% 70%,100% 100%,0 100%)}
+      30%{clip-path:polygon(0 85%,100% 85%,100% 100%,0 100%)}
+    }
+
+    #countdown {
+      font-family:'Orbitron';
+      font-size:1.7rem;
+      letter-spacing:0.1em;
+      margin:1.3rem 0;
+      text-align:center;
+      color:var(--accent);
+    }
+
+    button, .btn-link {
+      background:rgba(255,31,61,0.15);
+      border:1px solid var(--accent);
+      padding:0.9rem 2rem;
+      border-radius:50px;
+      cursor:pointer;
+      font-weight:700;
+      text-transform:uppercase;
+      letter-spacing:0.12em;
+      transition:all 0.3s;
+      color:inherit;
+      text-decoration:none;
+    }
+
+    button:hover, .btn-link:hover {
+      background:var(--accent);
+      box-shadow:0 0 30px var(--accent-glow);
+      transform:translateY(-4px) scale(1.05);
+    }
+
+    #soundBtn {
+      position:fixed;
+      bottom:1rem;
+      left:1rem;
+      z-index:999;
+      font-size:2rem;
+      background:none;
+      border:none;
+      cursor:pointer;
+    }
+
+    .terminal-block {
+      background:rgba(255,31,61,0.1);
+      border:1px solid rgba(255,31,61,0.3);
+      padding:1rem;
+      border-radius:0.75rem;
+      font-family:'SF Mono',monospace;
+      color:#d8ffd9;
+      font-size:0.85rem;
+      max-width:500px;
+      margin:auto;
+    }
+
+    .error { color:#ff99aa; min-height:1.2em; margin-top:0.5rem; }
+    .hint  { color:#aaffaa; min-height:1.2em; margin-top:0.5rem; font-size:0.8rem; }
+
+    .quiz-summary { color:var(--text-muted); min-height:1.2em; margin-top:0.5rem; }
+
+    input[type="text"]{
+      width:100%;
+      padding:0.6rem 0.8rem;
+      border-radius:0.6rem;
+      border:1px solid rgba(255,255,255,0.25);
+      background:rgba(0,0,0,0.8);
+      color:var(--text-main);
+      font-size:0.9rem;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="particles"></canvas>
+  <div class="scan-lines"></div>
+  <div class="grain"></div>
+
+  <!-- SIGILS -->
+  <div class="sigils">
+    <span style="top:12%;left:10%;font-size:5rem;">☣</span>
+    <span style="top:65%;right:12%;font-size:4rem;">†</span>
+    <span style="bottom:14%;left:18%;font-size:3.8rem;">3:13</span>
+    <span style="top:28%;right:8%;font-size:3.2rem;">⚠</span>
+    <span style="top:50%;left:50%;transform:translate(-50%,-50%);font-size:7rem;opacity:0.3;">OP 3:13</span>
+  </div>
+
+  <button id="soundBtn" onclick="toggleSound()">🔊</button>
+
+  <!-- SCREEN 1: LANDING -->
+  <section class="screen active" id="screen-1">
+    <div class="card" style="text-align:center;">
+      <div class="tagline">restricted channel // anthem youth // male recruitment</div>
+
+      <h1 class="glitch" data-text="OPERATION 3:13">OPERATION 3:13</h1>
+
+      <div id="countdown"></div>
+
+      <p style="font-size:1.2rem;max-width:620px;margin:1rem auto 2rem;line-height:1.7;">
+        This transmission has breached your device.<br>
+        If you weren’t meant to see it… you already know.<br><br>
+        Only those prepared for war against the flesh may proceed.<br>
+        Clearance requires surviving all phases.
+      </p>
+
+      <div class="terminal-block" style="margin-top:2rem;">
+        <div>[SYSTEM] STATUS: SIGNAL UNSTABLE</div>
+        <div>[WARNING] MEET DETAILS: REDACTED</div>
+        <div>[NOTICE] ACCESS GRANTED ONLY TO THOSE WHO ENDURE</div>
+      </div>
+
+      <button data-advance="true" onclick="showScreen('screen-2')" style="font-size:1.3rem;padding:1.2rem 4rem;margin-top:2rem;">
+        ▸ ACCEPT TRANSMISSION
+      </button>
+    </div>
+  </section>
+
+  <!-- SCREEN 2: 3:13 CODE -->
+  <section class="screen" id="screen-2">
+    <div class="card">
+      <div class="tagline">phase i // core reference</div>
+      <h2>Locate the Heartbeat</h2>
+      <p>
+        Take the reference <strong>Hebrews 3:13</strong>. Strip everything except digits.
+      </p>
+
+      <div class="input-group">
+        <label for="code-313">ACCESS CODE</label>
+        <input id="code-313" type="text" />
+        <div class="hint" id="hint-313"></div>
+        <div class="error" id="error-313"></div>
+      </div>
+
+      <div style="margin-top:2rem;display:flex;gap:1rem;justify-content:space-between;flex-wrap:wrap;">
+        <button onclick="showScreen('screen-1')">◂ Back</button>
+        <button data-advance="true" onclick="checkCode313()">Validate ▸</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCREEN 3: T9 -->
+  <section class="screen" id="screen-3">
+    <div class="card">
+      <div class="tagline">phase ii // t9 encryption</div>
+      <h2>Encrypt the Fight</h2>
+      <p>The word is <strong>FIGHT</strong>. Convert it to its T9 digits.</p>
+
+      <div class="terminal-block" style="margin-top:1.2rem;">
+        <div>2 = ABC</div><div>3 = DEF</div><div>4 = GHI</div>
+        <div>5 = JKL</div><div>6 = MNO</div><div>7 = PQRS</div>
+        <div>8 = TUV</div><div>9 = WXYZ</div>
+      </div>
+
+      <div class="input-group">
+        <label for="code-t9">T9 STRING</label>
+        <input id="code-t9" type="text" />
+        <div class="hint" id="hint-t9"></div>
+        <div class="error" id="error-t9"></div>
+      </div>
+
+      <div style="margin-top:2rem;display:flex;gap:1rem;justify-content:space-between;flex-wrap:wrap;">
+        <button onclick="showScreen('screen-2')">◂ Back</button>
+        <button data-advance="true" onclick="checkCodeT9()">Validate ▸</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCREEN 4: CIPHER -->
+  <section class="screen" id="screen-4">
+    <div class="card">
+      <div class="tagline">phase iii // cipher crack</div>
+      <h2>Decode the Brotherhood</h2>
+      <p>Shift each letter in <strong>EURWKHUKRRG</strong> back by 3.</p>
+
+      <div class="input-group">
+        <label for="code-cipher">DECODED WORD</label>
+        <input id="code-cipher" type="text" />
+        <div class="hint" id="hint-cipher"></div>
+        <div class="error" id="error-cipher"></div>
+      </div>
+
+      <div style="margin-top:2rem;display:flex;gap:1rem;justify-content:space-between;flex-wrap:wrap;">
+        <button onclick="showScreen('screen-3')">◂ Back</button>
+        <button data-advance="true" onclick="checkCodeCipher()">Check ▸</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCREEN 5a: TRIVIA -->
+  <section class="screen" id="screen-5a">
+    <div class="card">
+      <!-- Secret clickable tagline for DODGE THAT video -->
+      <div class="tagline" id="secret-archive">phase iv // intel verification</div>
+      <h2>Final Check</h2>
+      <p>You must pass with a perfect <strong>6 out of 6</strong>.</p>
+
+      <ol style="margin:1rem 0; padding-left:2rem; line-height:2;">
+        <li>First Anthem leader?<br><input type="text" id="q1"></li>
+        <li>One-word vision?<br><input type="text" id="q2"></li>
+        <li>Josh’s restaurant?<br><input type="text" id="q3"></li>
+        <li>How often encourage (Heb 3:13)?<br><input type="text" id="q4"></li>
+        <li>Hearts hardened by what?<br><input type="text" id="q5"></li>
+        <li>In the DODGE THAT saga, what is Mikey’s special move called?<br><input type="text" id="q6"></li>
+      </ol>
+
+      <div class="quiz-summary" id="quiz-summary">
+        Threshold: 6/6. This is not a participation trophy.
+      </div>
+      <div class="error" id="quiz-error"></div>
+
+      <div style="margin-top:2rem;display:flex;gap:1rem;justify-content:space-between;flex-wrap:wrap;">
+        <button onclick="showScreen('screen-4')">◂ Back</button>
+        <button data-advance="true" onclick="checkQuiz()">Run Scan ▸</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCREEN 5: ENLISTED -->
+  <section class="screen" id="screen-5">
+    <div class="card" style="text-align:center;">
+      <div class="tagline">mission brief // operation 3:13</div>
+
+      <h1 style="display:flex;justify-content:center;align-items:center;gap:0.5rem;">
+        <span class="glitch" data-text="ENLISTED">ENLISTED</span>
+        <span aria-hidden="true">🔥</span>
+      </h1>
+
+      <h2 style="margin:2rem 0;font-size:2.3rem;color:var(--accent);letter-spacing:0.15em;text-transform:uppercase;">
+        Welcome to the Squad
+      </h2>
+
+      <p style="font-size:1.2rem;max-width:600px;margin:0 auto 1.5rem;">
+        “Encourage one another daily…” (Hebrews 3:13)
+      </p>
+
+      <p style="margin:1.5rem 0;font-size:1.4rem;">
+        First Mission<br><strong>December 12 · 6:00 PM · Anthem Youth Room</strong>
+      </p>
+
+      <a href="https://forms.gle/iNsSdvowJn2SUj87A" target="_blank"
+        class="btn-link" style="font-size:1.4rem;padding:1.3rem 4rem;display:inline-block;margin:2rem 0;">
+        LOCK IN MY SPOT ▸▸▸
+      </a>
+
+      <p>You survived the transmission.<br>Now survive the mission.</p>
+    </div>
+  </section>
+
+  <!-- SCRIPTS -->
+  <script src="https://cdn.jsdelivr.net/npm/tsparticles@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tsparticles/preset-links@3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
+  <script>
+    /* PARTICLES SAFE LOAD */
+    if (window.tsParticles) {
+      tsParticles.load("particles", {
+        preset: "links",
+        particles: {
+          color:{value:"#ff1f3d"},
+          links:{enable:true,color:"#ff1f3d",distance:140},
+          move:{enable:true,speed:1.4}
+        }
+      });
+    }
+
+    /* COUNTDOWN */
+    const c = document.getElementById("countdown");
+    const target = new Date("2025-12-12T18:00:00");
+
+    setInterval(() => {
+      const diff = target - new Date();
+      if (diff <= 0) { c.innerHTML = "SIGNAL BREACHED"; return; }
+      const d = Math.floor(diff/86400000);
+      const h = Math.floor((diff%86400000)/3600000);
+      const m = Math.floor((diff%3600000)/60000);
+      const s = Math.floor((diff%60000)/1000);
+      c.innerHTML = `${d}d ${h}h ${m}m ${s}s`;
+    }, 1000);
+
+    /* PURE WEB AUDIO: DEEP + GLITCHY */
+    let soundOn = true;
+    let audioCtx = null;
+
+    function ensureAudioCtx() {
+      if (audioCtx) return audioCtx;
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      audioCtx = new AC();
+      return audioCtx;
+    }
+
+    function makeDistortionCurve(amount = 50) {
+      const n = 44100;
+      const curve = new Float32Array(n);
+      for (let i = 0; i < n; i++) {
+        const x = (i * 2 / n) - 1;
+        curve[i] = ((3 + amount) * x * 20 * Math.PI / 180) / (Math.PI + amount * Math.abs(x));
+      }
+      return curve;
+    }
+
+    function playBeep(type) {
+      if (!soundOn) return;
+      const ctx = ensureAudioCtx();
+      if (!ctx) return;
+      if (ctx.state === "suspended") {
+        ctx.resume().catch(()=>{});
+      }
+
+      const now = ctx.currentTime;
+
+      if (type === "error") {
+        // glitch crackle + tiny high chirp
+        const bufferSize = 2048;
+        const noise = ctx.createScriptProcessor(bufferSize, 1, 1);
+        noise.onaudioprocess = function(e) {
+          const output = e.outputBuffer.getChannelData(0);
+          for (let i = 0; i < bufferSize; i++) {
+            // staticy crackle
+            output[i] = (Math.random() * 2 - 1) * (Math.random() > 0.9 ? 0.7 : 0.2);
+          }
+        };
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+        noise.connect(gain);
+        gain.connect(ctx.destination);
+        noise.start = function() {};
+        noise.stop = function(t) { setTimeout(()=>noise.disconnect(), (t-now)*1000); };
+        noise.start(now);
+        noise.stop(now + 0.13);
+
+        const osc = ctx.createOscillator();
+        const chirpGain = ctx.createGain();
+        osc.type = "square";
+        osc.frequency.setValueAtTime(900, now);
+        osc.frequency.linearRampToValueAtTime(300, now + 0.12);
+        chirpGain.gain.setValueAtTime(0.25, now);
+        chirpGain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+        osc.connect(chirpGain);
+        chirpGain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.13);
+        return;
+      }
+
+      if (type === "fail") {
+        // mission failed: deep bass drop + rumble
+        const osc = ctx.createOscillator();
+        const sub = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const subGain = ctx.createGain();
+        const dist = ctx.createWaveShaper();
+
+        dist.curve = makeDistortionCurve(120);
+        dist.oversample = "4x";
+
+        osc.type = "sawtooth";
+        sub.type = "sine";
+
+        osc.connect(dist);
+        dist.connect(gain);
+        sub.connect(subGain);
+        subGain.connect(ctx.destination);
+        gain.connect(ctx.destination);
+
+        osc.frequency.setValueAtTime(220, now);
+        osc.frequency.exponentialRampToValueAtTime(60, now + 0.8);
+
+        sub.frequency.setValueAtTime(60, now);
+        sub.frequency.exponentialRampToValueAtTime(30, now + 0.8);
+
+        gain.gain.setValueAtTime(0.4, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.9);
+
+        subGain.gain.setValueAtTime(0.5, now);
+        subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.9);
+
+        osc.start(now);
+        sub.start(now);
+        osc.stop(now + 0.95);
+        sub.stop(now + 0.95);
+        return;
+      }
+
+      if (type === "victory") {
+        // apocalyptic rising alarm + sub
+        const osc = ctx.createOscillator();
+        const sub = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const subGain = ctx.createGain();
+        const dist = ctx.createWaveShaper();
+
+        dist.curve = makeDistortionCurve(90);
+        dist.oversample = "4x";
+
+        osc.type = "sawtooth";
+        sub.type = "sine";
+
+        osc.connect(dist);
+        dist.connect(gain);
+        sub.connect(subGain);
+        subGain.connect(ctx.destination);
+        gain.connect(ctx.destination);
+
+        osc.frequency.setValueAtTime(150, now);
+        osc.frequency.exponentialRampToValueAtTime(500, now + 0.7);
+
+        sub.frequency.setValueAtTime(60, now);
+        sub.frequency.linearRampToValueAtTime(90, now + 0.5);
+
+        gain.gain.setValueAtTime(0.5, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+
+        subGain.gain.setValueAtTime(0.4, now);
+        subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+
+        osc.start(now);
+        sub.start(now);
+        osc.stop(now + 0.85);
+        sub.stop(now + 0.85);
+        return;
+      }
+
+      // default click: low metallic pulse + sub
+      const osc = ctx.createOscillator();
+      const sub = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const subGain = ctx.createGain();
+      const dist = ctx.createWaveShaper();
+
+      dist.curve = makeDistortionCurve(70);
+      dist.oversample = "4x";
+
+      osc.type = "triangle";
+      sub.type = "sine";
+
+      osc.connect(dist);
+      dist.connect(gain);
+      sub.connect(subGain);
+      gain.connect(ctx.destination);
+      subGain.connect(ctx.destination);
+
+      osc.frequency.setValueAtTime(180, now);
+      osc.frequency.exponentialRampToValueAtTime(140, now + 0.14);
+
+      sub.frequency.setValueAtTime(70, now);
+      sub.frequency.exponentialRampToValueAtTime(55, now + 0.14);
+
+      gain.gain.setValueAtTime(0.3, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+
+      subGain.gain.setValueAtTime(0.35, now);
+      subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+
+      osc.start(now);
+      sub.start(now);
+      osc.stop(now + 0.2);
+      sub.stop(now + 0.2);
+    }
+
+    function toggleSound() {
+      soundOn = !soundOn;
+      document.getElementById("soundBtn").textContent = soundOn ? "🔊" : "🔇";
+      if (soundOn) {
+        const ctx = ensureAudioCtx();
+        if (ctx && ctx.state === "suspended") ctx.resume().catch(()=>{});
+        playBeep("click");
+      }
+    }
+
+    /* ADVANCE-SPAM TRACKING */
+    let spamPress = 0;
+    function registerAdvance() {
+      spamPress++;
+      if (spamPress === 15) {
+        alert("Advance-spam detected. This isn’t Mario Kart, soldier.");
+        playBeep("error");
+      }
+      if (spamPress === 30) {
+        alert("MISSION FAILED: You tried to brute-force the system.");
+        playBeep("fail");
+      }
+    }
+
+    // Play click sound on buttons + .btn-link and count spam for advance buttons
+    document.addEventListener("click", e => {
+      const t = e.target;
+      const isButton = t.tagName === "BUTTON";
+      const isLinkButton = t.classList && t.classList.contains("btn-link");
+      if (isButton || isLinkButton) {
+        playBeep("click");
+        if (isButton && t.dataset.advance === "true") {
+          registerAdvance();
+        }
+      }
+    });
+
+    function victory() {
+      playBeep("victory");
+      if (typeof confetti === "function") {
+        confetti({particleCount:300, spread:100, origin:{y:0.6}});
+        setTimeout(()=>confetti({particleCount:200, angle:60, origin:{x:0}}),200);
+        setTimeout(()=>confetti({particleCount:200, angle:120, origin:{x:1}}),400);
+      }
+    }
+
+    /* SECRET DODGE THAT ARCHIVE CLICK */
+    const archive = document.getElementById("secret-archive");
+    if (archive) {
+      archive.addEventListener("click", () => {
+        window.open("https://www.youtube.com/watch?v=fzFqeIvauw8", "_blank");
+      });
+    }
+
+    /* SCREEN NAVIGATION */
+    function showScreen(id) {
+      document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+      document.getElementById(id).classList.add("active");
+
+      document.querySelectorAll(".error, .hint").forEach(e => e.textContent = "");
+      if (id === "screen-5") setTimeout(victory, 600);
+    }
+
+    function normalize(v) { return v.trim().toLowerCase(); }
+
+    /* ENTER KEY HANDLER WITH SOUND + SPAM */
+    document.addEventListener("keydown", e => {
+      if (e.key !== "Enter") return;
+
+      registerAdvance();
+      playBeep("click");
+
+      if (document.getElementById("screen-2").classList.contains("active")) checkCode313();
+      else if (document.getElementById("screen-3").classList.contains("active")) checkCodeT9();
+      else if (document.getElementById("screen-4").classList.contains("active")) checkCodeCipher();
+      else if (document.getElementById("screen-5a").classList.contains("active")) checkQuiz();
+    });
+
+    /* --- ERROR MESSAGES (ROTATING) --- */
+    const errors313 = [
+      "Access denied. Core reference not recognized.",
+      "Nope. The system just squinted at that code.",
+      "Still locked. Hebrews is offended.",
+      "Alarm ping: random guessing detected. Try reading instead."
+    ];
+
+    const errorsT9 = [
+      "Jammed signal. That code isn’t matching the keypad.",
+      "Incorrect encryption. Flip phones are laughing at you.",
+      "T9 failure. Try thinking like it’s 2004.",
+      "That sequence does not spell FIGHT. At all."
+    ];
+
+    const errorsCipher = [
+      "Decryption failed. The word is still scrambled.",
+      "Not the word. Cool guess, wrong cipher.",
+      "Cipher mismatch. Shift each letter back three, not vibes-based.",
+      "Close? Maybe. Correct? No."
+    ];
+
+    let attempts313 = 0, attemptsT9 = 0, attemptsCipher = 0;
+    let quizAttempts = 0;
+
+    /* PHASE 1: HEBREWS 3:13 CODE */
+    function checkCode313() {
+      const raw = document.getElementById("code-313").value;
+      const shown = raw.trim();
+      const error = document.getElementById("error-313");
+      const hint  = document.getElementById("hint-313");
+
+      const digitsOnly = normalize(raw).replace(/\D/g,"");
+
+      if (!digitsOnly) {
+        error.textContent = "Blank code? Bold strategy.";
+        playBeep("error");
+        return;
+      }
+
+      if (digitsOnly === "313") {
+        attempts313 = 0;
+        hint.textContent = "";
+        error.textContent = "";
+        showScreen("screen-3");
+      } else {
+        attempts313++;
+        const base = errors313[attempts313 % errors313.length];
+        if (attempts313 === 1 && shown) {
+          error.textContent = `"${shown}"? ${base}`;
+        } else {
+          error.textContent = base;
+        }
+        playBeep("error");
+
+        if (attempts313 === 5) {
+          hint.textContent = "Digits only: chapter number and verse number pressed together.";
+        } else if (attempts313 === 10) {
+          hint.textContent = "You already know it's three and thirteen. Treat it like a single code.";
+        }
+      }
+    }
+
+    /* PHASE 2: T9 FIGHT */
+    function checkCodeT9() {
+      const raw = document.getElementById("code-t9").value;
+      const shown = raw.trim();
+      const error = document.getElementById("error-t9");
+      const hint  = document.getElementById("hint-t9");
+
+      const val = normalize(raw).replace(/\s/g,"");
+
+      if (!val) {
+        error.textContent = "The keypad is waiting. So is your brain.";
+        playBeep("error");
+        return;
+      }
+
+      if (val === "34448") {
+        attemptsT9 = 0;
+        hint.textContent = "";
+        error.textContent = "";
+        showScreen("screen-4");
+      } else {
+        attemptsT9++;
+        const base = errorsT9[attemptsT9 % errorsT9.length];
+        if (attemptsT9 === 1 && shown) {
+          error.textContent = `"${shown}" isn’t it. ${base}`;
+        } else {
+          error.textContent = base;
+        }
+        playBeep("error");
+
+        if (attemptsT9 === 5) {
+          hint.textContent = "Match each letter in FIGHT to its number on the T9 keypad.";
+        } else if (attemptsT9 === 10) {
+          hint.textContent = "F→3, I→4, G→4, H→4, T→8. Put those digits together.";
+        }
+      }
+    }
+
+    /* PHASE 3: CIPHER BROTHERHOOD */
+    function checkCodeCipher() {
+      const raw = document.getElementById("code-cipher").value;
+      const shown = raw.trim();
+      const error = document.getElementById("error-cipher");
+      const hint  = document.getElementById("hint-cipher");
+
+      const val = normalize(raw).replace(/[^a-z]/g,"");
+
+      if (!val) {
+        error.textContent = "Type the decoded word, not just stare at it.";
+        playBeep("error");
+        return;
+      }
+
+      if (val === "family" || val === "squad" || val === "unit") {
+        error.textContent = `"${shown}" is a vibe, but not the cipher. Think more ‘band of brothers’ level.`;
+        attemptsCipher++;
+        playBeep("error");
+        return;
+      }
+
+      if (val === "brotherhood") {
+        attemptsCipher = 0;
+        hint.textContent = "";
+        error.textContent = "";
+        showScreen("screen-5a");
+      } else {
+        attemptsCipher++;
+        const base = errorsCipher[attemptsCipher % errorsCipher.length];
+        if (attemptsCipher === 1 && shown) {
+          error.textContent = `"${shown}" isn’t decoding right. ${base}`;
+        } else {
+          error.textContent = base;
+        }
+        playBeep("error");
+
+        if (attemptsCipher === 5) {
+          hint.textContent = "You’re decoding a word that describes a tight group of brothers.";
+        } else if (attemptsCipher === 10) {
+          hint.textContent = "Every cipher letter is three steps ahead of the real word. Shift back.";
+        }
+      }
+    }
+
+    /* PHASE 4: TRIVIA (+ DODGE THAT) */
+    function checkQuiz() {
+      const a = id => normalize(document.getElementById(id).value);
+
+      const q1 = a("q1");
+      const q2 = a("q2");
+
+      const q3Raw = document.getElementById("q3").value.trim();
+      const q3 = a("q3");
+
+      const q4 = a("q4");
+      const q5 = a("q5");
+
+      const q6Raw = document.getElementById("q6").value.trim();
+      const q6 = a("q6");
+
+      const error = document.getElementById("quiz-error");
+      const summary = document.getElementById("quiz-summary");
+
+      if (!q1 && !q2 && !q3 && !q4 && !q5 && !q6) {
+        error.textContent = "Answer at least something before you mash scan.";
+        playBeep("error");
+        return;
+      }
+
+      let score = 0;
+      if (q1.includes("michael")) score++;
+      if (q2 === "jesus") score++;
+      if (q3 === "chipotle") score++;
+      if (["daily","everyday","every day"].includes(q4)) score++;
+      if (q5.includes("sin")) score++;
+
+      // DODGE THAT – accept "super bounce" (with or without "the")
+      const q6Flat = q6.replace(/\s+/g,"");
+      if (q6Flat.includes("superbounce")) score++;
+
+      if (score === 6) {
+        summary.textContent = `Scan complete: ${score}/6. Firewall satisfied.`;
+        error.textContent = "";
+        showScreen("screen-5");
+      } else {
+        quizAttempts++;
+        let extra = "";
+        if (q3 && q3 !== "chipotle") {
+          extra += ` Also, "${q3Raw}" instead of Chipotle? That alone is almost disqualifying.`;
+        }
+        if (quizAttempts >= 3 && !q6Flat.includes("superbounce")) {
+          extra += " Intel: there may be old training footage hidden on this screen...";
+        }
+        error.textContent = `${score}/6 — not enough. Perfect or nothing.${extra}`;
+        summary.textContent = "Hint: all of this is Hebrews 3:13, Anthem lore, or ancient dodgeball legend.";
+        playBeep("error");
+      }
+    }
+  </script>
+</body>
+</html>
