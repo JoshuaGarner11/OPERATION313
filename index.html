@@ -21,8 +21,8 @@
       background: radial-gradient(circle at 30% 30%, #1a0003 0%, #000 75%);
       color: var(--text-main);
       font-family: 'Rajdhani', system-ui, sans-serif;
-      overflow-x: hidden;  /* allow scroll but prevent sideways */
-      overflow-y: auto;
+      overflow-x: hidden;  /* prevent sideways scroll */
+      overflow-y: auto;    /* allow vertical scroll */
     }
 
     canvas#particles { position:fixed; inset:0; z-index:1; pointer-events:none; }
@@ -102,6 +102,8 @@
       letter-spacing:0.15em;
       position:relative;
       display:inline-block;
+      text-align:center;
+      word-break:break-word;
     }
 
     .glitch::before,
@@ -206,6 +208,17 @@
         padding:2rem 1.2rem;
         border-radius:1.2rem;
         max-height:none;        /* allow full scroll if needed */
+      }
+
+      /* Give the first screen a bit of breathing room from the very top */
+      #screen-1 .card {
+        margin-top:1.5rem;
+      }
+
+      /* Tame the glitch title so it doesn’t clip horizontally */
+      .glitch {
+        font-size:clamp(2rem, 7vw, 3rem);
+        letter-spacing:0.08em;
       }
 
       button,
